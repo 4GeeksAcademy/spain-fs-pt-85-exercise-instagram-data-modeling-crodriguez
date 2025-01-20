@@ -1,29 +1,55 @@
 import os
 import sys
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship, declarative_base, mapped_column
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+class User(Base):
+    __tablename__ = 'user'
+    
+    id = mapped_column(Integer, primary_key=True)
+    username = mapped_column(String(50), nullable=False)
+    firstname = mapped_column(String(50))
+    lastname = mapped_column(String(100))
+    email = mapped_column(String(100), nullable=False)
+    follower = relationship("User", back_populates="follower")
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+class Post(Base):
+    __tablename__ = 'post'
+
+    id = mapped_column(Integer, primary_key=True)
+    user_id = mapped_column(ForeignKey('user.id'))
+    user = relationship("Post", back_populates="user")
+
+class Media(Base):
+    __tablename__ = 'media'
+
+    id = mapped_column(Integer, primary_key=True)
+    type = mapped_column(String(250))
+    url = mapped_column(String(250))
+    post_id = mapped_column(ForeignKey('post.id'))
+    post = relationship("Media", back_populates="post")
+
+class Comment(Base):
+    __tablename__ = 'comment'
+
+    id = mapped_column(Integer, primary_key=True)
+    comment_text = mapped_column(String(250))
+    author_id = mapped_column(ForeignKey('user.id'))
+    post_id = mapped_column(ForeignKey('post.id'))
+    user = relationship("Comment", back_populates="user")
+    post = relationship("Comment", back_populates="post")
+    
+
+class Follower(Base):
+    __tablename__ = 'follower'
+    
+    id = mapped_column(Integer, primary_key=True)
+    user_from_id = mapped_column(ForeignKey('user.id'))
+    user_to_id = mapped_column(ForeignKey('user.id'))
 
     def to_dict(self):
         return {}
